@@ -1,161 +1,141 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>নোটিশ</title>
+    <title>Notice Board - Chindhukuria Digital Coaching</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            padding: 20px;
+            background: #f7f7f7;
+            color: #333;
         }
-        .notice-board {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        h2 {
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
             text-align: center;
         }
-        .notice-list {
-            margin-top: 20px;
+        .notice-board {
+            margin: 20px;
         }
         .notice {
-            background-color: #e8f5e9;
-            padding: 10px;
-            border-radius: 4px;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             margin-bottom: 10px;
-            border-left: 5px solid #4caf50;
-            position: relative;
         }
-        .form-container {
-            margin-top: 20px;
+        .notice h3 {
+            margin-top: 0;
         }
-        input, textarea {
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #4caf50;
+        .post-notice-btn, .delete-btn {
+            background-color: #4CAF50;
             color: white;
-            border: none;
             padding: 10px 20px;
-            border-radius: 4px;
+            border: none;
             cursor: pointer;
+            border-radius: 5px;
+            margin: 10px 0;
         }
-        .login-container {
-            margin-top: 20px;
-        }
-        .message {
-            color: red;
+        .post-notice-btn:hover, .delete-btn:hover {
+            background-color: #45a049;
         }
         .delete-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
             background-color: red;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 4px;
+        }
+        .delete-btn:hover {
+            background-color: darkred;
+        }
+        .notice input, .notice textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
         }
     </style>
 </head>
 <body>
 
+<header>
+    <h1>Welcome to Chindhukuria Digital Coaching Notice Board</h1>
+</header>
+
 <div class="notice-board">
-    <h2>নোটিশ বোর্ড</h2>
-    
-    <div class="notice-list" id="noticeList">
-        <!-- নোটিশগুলো এখানে দেখানো হবে -->
+    <!-- Display Notices -->
+    <div id="notices-list">
+        <!-- Notices will appear here -->
     </div>
 
-    <!-- লগইন সেকশন -->
-    <div id="loginSection" class="login-container">
-        <h3>অ্যাডমিন লগইন করুন</h3>
-        <input type="password" id="adminPassword" placeholder="পাসওয়ার্ড লিখুন" required>
-        <button onclick="login()">লগইন</button>
-        <p class="message" id="errorMessage"></p>
-    </div>
+    <!-- Post Notice Button -->
+    <button class="post-notice-btn" onclick="togglePostForm()">Post a Notice</button>
 
-    <!-- নোটিশ পোস্ট করার ফর্ম -->
-    <div id="noticeForm" class="form-container" style="display:none;">
-        <h3>নতুন নোটিশ পোস্ট করুন</h3>
-        <input type="text" id="noticeTitle" placeholder="নোটিশের শিরোনাম" required>
-        <textarea id="noticeContent" rows="4" placeholder="নোটিশের বিস্তারিত" required></textarea>
-        <button onclick="postNotice()">পোস্ট করুন</button>
+    <!-- Post Notice Form (Hidden by default) -->
+    <div id="notice-form" style="display:none;">
+        <div class="notice">
+            <h3>Post a New Notice</h3>
+            <input type="password" id="admin-password" placeholder="Enter Admin Password" />
+            <input type="text" id="notice-title" placeholder="Notice Title" />
+            <textarea id="notice-content" placeholder="Enter the notice details..."></textarea>
+            <button class="post-notice-btn" onclick="postNotice()">Post Notice</button>
+        </div>
     </div>
 </div>
 
 <script>
-    // পাসওয়ার্ড যাচাই করার জন্য
-    const adminPassword = "Shakil00"; // পাসওয়ার্ড এখানে সেট করা হলো
+    var correctPassword = "shakil00"; // Admin password
 
-    // নোটিশগুলি সেভ করার জন্য স্থানীয় স্টোরেজ ব্যবহার করা হচ্ছে
-    function loadNotices() {
-        let notices = JSON.parse(localStorage.getItem("notices")) || [];
-        let noticeList = document.getElementById("noticeList");
-        noticeList.innerHTML = ""; // আগের নোটিশগুলো ক্লিয়ার করা
-        notices.forEach(function(notice, index) {
-            let noticeElement = document.createElement("div");
-            noticeElement.classList.add("notice");
-            noticeElement.innerHTML = `<strong>${notice.title}</strong><p>${notice.content}</p><button class="delete-btn" onclick="deleteNotice(${index})">মুছুন</button>`;
-            noticeList.appendChild(noticeElement);
-        });
+    // Toggle visibility of the notice form
+    function togglePostForm() {
+        var form = document.getElementById('notice-form');
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
     }
 
-    // লগইন ফাংশন
-    function login() {
-        let password = document.getElementById("adminPassword").value;
-        if(password === adminPassword) {
-            document.getElementById("loginSection").style.display = "none";
-            document.getElementById("noticeForm").style.display = "block";
-            loadNotices(); // লগইন করার পর নোটিশ লোড করা
-        } else {
-            document.getElementById("errorMessage").textContent = "ভুল পাসওয়ার্ড!";
-        }
-    }
-
-    // নতুন নোটিশ পোস্ট করার ফাংশন
+    // Function to post a new notice
     function postNotice() {
-        let title = document.getElementById("noticeTitle").value;
-        let content = document.getElementById("noticeContent").value;
+        var password = document.getElementById('admin-password').value;
+        var title = document.getElementById('notice-title').value;
+        var content = document.getElementById('notice-content').value;
 
-        if(title && content) {
-            let notices = JSON.parse(localStorage.getItem("notices")) || [];
-            notices.push({title: title, content: content});
-            localStorage.setItem("notices", JSON.stringify(notices));
+        if (password !== correctPassword) {
+            alert('Incorrect Password! You do not have access to post notices.');
+            return;
+        }
 
-            document.getElementById("noticeTitle").value = "";
-            document.getElementById("noticeContent").value = "";
-            loadNotices(); // নতুন নোটিশ দেখানো
+        if (title && content) {
+            var noticeList = document.getElementById('notices-list');
+            var newNotice = document.createElement('div');
+            newNotice.classList.add('notice');
+            newNotice.innerHTML = `<h3>${title}</h3><p>${content}</p>`;
+
+            // Add delete button for admin
+            var deleteBtn = document.createElement('button');
+            deleteBtn.classList.add('delete-btn');
+            deleteBtn.innerHTML = "Delete Notice";
+            deleteBtn.onclick = function() {
+                if (prompt("Enter Admin Password to Delete:") === correctPassword) {
+                    noticeList.removeChild(newNotice);
+                    alert("Notice deleted successfully!");
+                } else {
+                    alert("Incorrect password! You cannot delete this notice.");
+                }
+            };
+            newNotice.appendChild(deleteBtn);
+
+            noticeList.appendChild(newNotice);
+
+            // Clear form fields after posting
+            document.getElementById('notice-title').value = '';
+            document.getElementById('notice-content').value = '';
+            document.getElementById('admin-password').value = '';
+
+            alert('Notice posted successfully!');
+            togglePostForm(); // Hide the form after posting
         } else {
-            alert("দয়া করে সব তথ্য পূর্ণ করুন!");
+            alert('Please fill in both title and content.');
         }
     }
-
-    // পাসওয়ার্ড যাচাই করে নোটিশ মুছার ফাংশন
-    function deleteNotice(index) {
-        let password = prompt("নোটিশ মুছতে পাসওয়ার্ড দিন:");
-
-        if(password === adminPassword) {
-            let notices = JSON.parse(localStorage.getItem("notices")) || [];
-            notices.splice(index, 1); // মুছে দেওয়া হচ্ছে নির্বাচিত নোটিশটি
-            localStorage.setItem("notices", JSON.stringify(notices));
-            loadNotices(); // নতুন তালিকা লোড করা
-        } else {
-            alert("ভুল পাসওয়ার্ড!");
-        }
-    }
-
-    // প্রথমে নোটিশ লোড করানো
-    loadNotices();
 </script>
 
 </body>
