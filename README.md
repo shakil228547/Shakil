@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notice Board - Chindhukuria Digital Coaching</title>
+    <title>Notice Board with Save Feature</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -84,19 +84,54 @@
 </div>
 
 <script>
-    var correctPassword = "shakil00"; // Admin password
+    const correctPassword = "shakil00"; // Admin password
+    let notices = JSON.parse(localStorage.getItem('notices')) || []; // Load saved notices from localStorage
+
+    // Render notices on page load
+    function renderNotices() {
+        const noticeList = document.getElementById('notices-list');
+        noticeList.innerHTML = ''; // Clear current notices
+
+        notices.forEach((notice, index) => {
+            const noticeElement = document.createElement('div');
+            noticeElement.classList.add('notice');
+            noticeElement.innerHTML = `<h3>${notice.title}</h3><p>${notice.content}</p>`;
+
+            // Add delete button for admin
+            const deleteBtn = document.createElement('button');
+            deleteBtn.classList.add('delete-btn');
+            deleteBtn.innerHTML = "Delete Notice";
+            deleteBtn.onclick = function () {
+                if (prompt("Enter Admin Password to Delete:") === correctPassword) {
+                    notices.splice(index, 1); // Remove notice from array
+                    saveNotices(); // Save updated notices
+                    renderNotices(); // Re-render notices
+                } else {
+                    alert("Incorrect password! You cannot delete this notice.");
+                }
+            };
+            noticeElement.appendChild(deleteBtn);
+
+            noticeList.appendChild(noticeElement);
+        });
+    }
+
+    // Save notices to localStorage
+    function saveNotices() {
+        localStorage.setItem('notices', JSON.stringify(notices));
+    }
 
     // Toggle visibility of the notice form
     function togglePostForm() {
-        var form = document.getElementById('notice-form');
+        const form = document.getElementById('notice-form');
         form.style.display = form.style.display === 'none' ? 'block' : 'none';
     }
 
     // Function to post a new notice
     function postNotice() {
-        var password = document.getElementById('admin-password').value;
-        var title = document.getElementById('notice-title').value;
-        var content = document.getElementById('notice-content').value;
+        const password = document.getElementById('admin-password').value;
+        const title = document.getElementById('notice-title').value;
+        const content = document.getElementById('notice-content').value;
 
         if (password !== correctPassword) {
             alert('Incorrect Password! You do not have access to post notices.');
@@ -104,26 +139,9 @@
         }
 
         if (title && content) {
-            var noticeList = document.getElementById('notices-list');
-            var newNotice = document.createElement('div');
-            newNotice.classList.add('notice');
-            newNotice.innerHTML = `<h3>${title}</h3><p>${content}</p>`;
-
-            // Add delete button for admin
-            var deleteBtn = document.createElement('button');
-            deleteBtn.classList.add('delete-btn');
-            deleteBtn.innerHTML = "Delete Notice";
-            deleteBtn.onclick = function() {
-                if (prompt("Enter Admin Password to Delete:") === correctPassword) {
-                    noticeList.removeChild(newNotice);
-                    alert("Notice deleted successfully!");
-                } else {
-                    alert("Incorrect password! You cannot delete this notice.");
-                }
-            };
-            newNotice.appendChild(deleteBtn);
-
-            noticeList.appendChild(newNotice);
+            notices.push({ title, content }); // Add new notice to array
+            saveNotices(); // Save updated notices
+            renderNotices(); // Re-render notices
 
             // Clear form fields after posting
             document.getElementById('notice-title').value = '';
@@ -136,6 +154,9 @@
             alert('Please fill in both title and content.');
         }
     }
+
+    // Initialize the page
+    renderNotices();
 </script>
 
 </body>
